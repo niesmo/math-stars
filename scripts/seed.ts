@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { db } from '../src/lib/db/index.js'
 import { skillLevels } from '../src/lib/db/schema.js'
 
