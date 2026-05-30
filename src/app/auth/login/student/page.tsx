@@ -1,17 +1,19 @@
 'use client'
 
 import { useState, FormEvent } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function StudentLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [classCode, setClassCode] = useState('')
   const [username, setUsername] = useState('')
   const [pin, setPin] = useState('')
   const [requiresPin, setRequiresPin] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const prefilledCode = (searchParams.get('code') ?? '').toUpperCase()
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -21,7 +23,7 @@ export default function StudentLoginPage() {
     const res = await fetch('/api/auth/student-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ classCode, username, pin: pin || undefined }),
+      body: JSON.stringify({ classCode: classCode || prefilledCode, username, pin: pin || undefined }),
     })
 
     const data = await res.json()
@@ -62,12 +64,11 @@ export default function StudentLoginPage() {
               <span className="text-sm font-semibold text-[#1e3a5f]">Class Code</span>
               <input
                 type="text"
-                value={classCode}
+                value={classCode || prefilledCode}
                 onChange={(e) => setClassCode(e.target.value.toUpperCase())}
-                required
                 maxLength={6}
                 className="px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#2563eb] outline-none transition-colors text-[#1e3a5f] font-mono text-xl tracking-widest text-center uppercase"
-                placeholder="ABC123"
+                placeholder="ABC123 (optional)"
                 autoComplete="off"
                 spellCheck={false}
               />

@@ -66,6 +66,20 @@ export default async function ClassDetailPage({ params }: PageProps) {
       </div>
 
       <JoinCodeDisplay code={classRow.joinCode} />
+      <div className="flex flex-wrap gap-3">
+        <Link
+          href={`/auth/login/student?code=${encodeURIComponent(classRow.joinCode)}`}
+          className="px-4 py-2 bg-[#2563eb] text-white text-sm font-bold rounded-xl hover:bg-[#1d4ed8] transition-colors"
+        >
+          Try Student Experience
+        </Link>
+        <Link
+          href={`/auth/login/student?code=${encodeURIComponent(classRow.joinCode)}`}
+          className="px-4 py-2 bg-white border border-blue-200 text-[#1e3a5f] text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors"
+        >
+          Share Join Link
+        </Link>
+      </div>
 
       <section aria-labelledby="students-heading">
         <div className="flex items-center justify-between mb-3">
