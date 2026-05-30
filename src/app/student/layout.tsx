@@ -1,0 +1,41 @@
+import Link from 'next/link'
+
+export default function StudentLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-[#1e3a5f] text-white px-4 py-3 shadow-md">
+        <nav className="max-w-2xl mx-auto flex items-center justify-between" aria-label="Student navigation">
+          <Link href="/student/dashboard" className="text-xl font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
+            ⭐ Math Stars
+          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/student/leaderboard"
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Leaderboard"
+            >
+              🏆
+            </Link>
+            <Link
+              href="/student/badges"
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Badges"
+            >
+              🎖️
+            </Link>
+            <Link
+              href="/student/profile"
+              className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              aria-label="Profile"
+            >
+              👤
+            </Link>
+          </div>
+        </nav>
+      </header>
+      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-6">
+        {children}
+      </main>
+    </div>
+  )
+}
