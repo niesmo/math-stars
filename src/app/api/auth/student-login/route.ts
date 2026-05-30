@@ -25,12 +25,22 @@ export async function POST(request: NextRequest) {
   const normalizedCode = classCode.toUpperCase().trim()
   const normalizedUsername = username.toLowerCase().trim()
 
-  const classRow = await db
-    .select()
-    .from(classes)
-    .where(and(eq(classes.joinCode, normalizedCode), eq(classes.isActive, true)))
-    .limit(1)
-    .then((r) => r[0])
+  let classRow: typeof classes.$inferSelect | undefined
+  let student: typeof students.$inferSelect | undefined
+
+  try {
+    classRow = await db
+      .select()
+      .from(classes)
+      .where(and(eq(classes.joinCode, normalizedCode), eq(classes.isActive, true)))
+      .limit(1)
+      .then((r) => r[0])
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'Database connection failed. Check server configuration.' },
+      { status: 500 }
+    )
+  }
 
   if (!classRow) {
     return NextResponse.json(
@@ -39,12 +49,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const student = await db
-    .select()
-    .from(students)
-    .where(and(eq(students.classId, classRow.id), eq(students.username, normalizedUsername)))
-    .limit(1)
-    .then((r) => r[0])
+  try {
+    student = await db
+      .select()
+      .from(students)
+      .where(and(eq(students.classId, classRow.id), eq(students.username, normalizedUsername)))
+      .limit(1)
+      .then((r) => r[0])
+  } catch {
+    return NextResponse.json(
+      { success: false, error: 'Database connection failed. Check server configuration.' },
+      { status: 500 }
+    )
+  }
 
   if (!student) {
     return NextResponse.json(
@@ -53,7 +70,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // If student has a PIN set, verify it
   if (student.pinHash) {
     if (typeof pin !== 'string') {
       return NextResponse.json(
@@ -83,7 +99,7 @@ export async function POST(request: NextRequest) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 60 * 60 * 8, // 8 hours
+    maxAge: 60 * 60 * 8,
     path: '/',
   })
 
