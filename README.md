@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Math Stars ⭐
 
-## Getting Started
+A distraction-free, gamified math practice platform for teachers and students (elementary–middle school). Teachers manage classes and track progress; students log in with a class code and practice math facts with streaks, points, and leaderboards.
 
-First, run the development server:
+## Tech Stack
+
+| Layer      | Choice                                  |
+| ---------- | --------------------------------------- |
+| Framework  | Next.js 16 (App Router, TypeScript)     |
+| Database   | Supabase (PostgreSQL + Realtime + Auth) |
+| ORM        | Drizzle ORM                             |
+| Styling    | Tailwind CSS 4                          |
+| Animation  | Framer Motion                           |
+| State      | Zustand                                 |
+| Deployment | Vercel                                  |
+
+## Features
+
+- **4 math skills** — addition, subtraction, multiplication, division
+- **5 difficulty levels** per skill with seeded question generation
+- **Gamification** — points, streaks, badges, Web Audio jingles
+- **Real-time leaderboard** via Supabase Realtime
+- **Teacher tools** — class management, join codes, student progress
+- **Student auth** — class code + username (no email, COPPA friendly)
+- **Accessibility** — WCAG 2.2 AA, keyboard nav, reduced motion support
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 20+
+- Supabase project (free tier at supabase.com)
+- `.npmrc` with your npm registry (gitignored)
+
+### Setup
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp .env.local.example .env.local
+# Fill in your Supabase values (see Environment Variables below)
+
+# 3. Run dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> **Note:** The database requires network access to Supabase (`*.supabase.co` on port 5432). If your network blocks this, use a phone hotspot or run `supabase start` with Docker for a local Supabase instance.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment Variables
 
-## Learn More
+| Variable | Where to find it |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → Data API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → Data API → `publishable_key` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → Data API → `service_role` (reveal secret) |
+| `DATABASE_URL` | Supabase → Project Settings → Database → Direct connection string (port 5432) |
+| `SESSION_SECRET` | Any 32-byte random string: `openssl rand -base64 32` |
+| `CRON_SECRET` | Any 32-byte random string: `openssl rand -base64 32` |
 
-To learn more about Next.js, take a look at the following resources:
+## Database
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Schema managed with Drizzle ORM. Migrations live in `supabase/migrations/` and are applied automatically via the Supabase GitHub integration on push to `main`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+# Generate a new migration after schema changes
+npm run db:generate
 
-## Deploy on Vercel
+# Seed skill levels (run once after first migration)
+npm run db:seed
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Open Drizzle Studio (requires DATABASE_URL)
+npm run db:studio
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deployment
+
+Deployed on Vercel. Connect the GitHub repo and add the 6 environment variables in **Project Settings → Environment Variables**.
+
+The `vercel.json` cron runs `/api/leaderboard/refresh` daily at midnight to aggregate leaderboard scores.
