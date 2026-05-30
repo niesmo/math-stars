@@ -5,7 +5,6 @@ import { db } from '@/lib/db'
 import { students } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { StarIcon } from '@/components/ui/StarIcon'
-import Link from 'next/link'
 
 export default async function ProfilePage() {
   const cookieStore = await cookies()
@@ -43,17 +42,14 @@ export default async function ProfilePage() {
         </div>
       </div>
 
-      <form action="/api/auth/student-login" method="DELETE">
-        <Link
-          href="/auth/login/student"
+      <form action="/api/auth/student-logout" method="POST">
+        <button
+          type="submit"
           className="block w-full py-3 text-center bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition-colors
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 focus-visible:ring-offset-2"
-          onClick={async () => {
-            await fetch('/api/auth/student-login', { method: 'DELETE' })
-          }}
         >
           Sign Out
-        </Link>
+        </button>
       </form>
     </div>
   )

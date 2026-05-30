@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { Suspense, useState, FormEvent } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function StudentLoginPage() {
+function StudentLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [classCode, setClassCode] = useState('')
@@ -123,5 +123,13 @@ export default function StudentLoginPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function StudentLoginPage() {
+  return (
+    <Suspense fallback={<div className="w-full max-w-sm text-center text-[#1e3a5f]">Loading…</div>}>
+      <StudentLoginForm />
+    </Suspense>
   )
 }

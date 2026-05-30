@@ -14,22 +14,30 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Leaderboard"
             >
-              🏆
+              Leaderboard
             </Link>
             <Link
               href="/student/badges"
               className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Badges"
             >
-              🎖️
+              Badges
             </Link>
             <Link
               href="/student/profile"
               className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Profile"
             >
-              👤
+              Profile
             </Link>
+            <form action="/api/auth/student-logout" method="POST">
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                Logout
+              </button>
+            </form>
           </div>
         </nav>
       </header>

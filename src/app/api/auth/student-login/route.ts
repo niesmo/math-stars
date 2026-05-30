@@ -41,12 +41,17 @@ export async function POST(request: NextRequest) {
   }
 
   if (!classRow && normalizedCode === 'OPEN01') {
-    const fallbackTeacher = await db.select().from(teachers).limit(1).then((r) => r[0])
+    let fallbackTeacher = await db.select().from(teachers).limit(1).then((r) => r[0])
     if (!fallbackTeacher) {
-      return NextResponse.json(
-        { success: false, error: 'No teacher account found. Create a teacher account first.' },
-        { status: 400 }
-      )
+      fallbackTeacher = await db
+        .insert(teachers)
+        .values({
+          authId: crypto.randomUUID(),
+          email: 'open-practice@local.math-stars',
+          displayName: 'Open Practice',
+        })
+        .returning()
+        .then((r) => r[0])
     }
 
     classRow = await db
@@ -95,6 +100,13 @@ export async function POST(request: NextRequest) {
       })
       .returning()
       .then((r) => r[0])
+  }
+
+  if (!student) {
+    return NextResponse.json(
+      { success: false, error: 'Unable to create or load student account.' },
+      { status: 500 }
+    )
   }
 
   if (student.pinHash) {
