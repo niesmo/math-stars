@@ -3,10 +3,10 @@
 import { useEffect, useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePracticeSession } from '@/store/practiceSession'
-import { generateQuestion, generateSessionSeed } from '@/lib/math/generator'
+import { generateOptionsForQuestion, generateQuestion, generateSessionSeed } from '@/lib/math/generator'
 import { SessionHeader } from './SessionHeader'
 import { QuestionCard } from './QuestionCard'
-import { AnswerInput } from './AnswerInput'
+import { AnswerOptions } from './AnswerOptions'
 import { FeedbackOverlay } from './FeedbackOverlay'
 import { useAudio } from '@/components/audio/AudioController'
 import type { SkillLevel } from '@/lib/db/schema'
@@ -48,6 +48,7 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
   }>({ show: false, isCorrect: false, correctAnswer: 0 })
   const [submitting, setSubmitting] = useState(false)
   const [initDone, setInitDone] = useState(false)
+  const [questionOptions, setQuestionOptions] = useState<number[]>([])
 
   useEffect(() => {
     if (initDone) return
@@ -71,6 +72,7 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
             seed,
             firstQuestion,
           })
+          setQuestionOptions(generateOptionsForQuestion(firstQuestion))
           setInitDone(true)
         }
       })
@@ -130,6 +132,7 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
           router.push('/student/practice/results')
         } else if (nextQuestion) {
           setCurrentQuestion(nextQuestion)
+          setQuestionOptions(generateOptionsForQuestion(nextQuestion))
           startQuestionTimer()
         }
       }, 800)
@@ -186,7 +189,7 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
         />
       </div>
 
-      <AnswerInput onSubmit={handleAnswer} disabled={submitting || feedback.show} />
+      <AnswerOptions options={questionOptions} onSelect={handleAnswer} disabled={submitting || feedback.show} />
     </div>
   )
 }

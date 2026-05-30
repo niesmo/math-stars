@@ -7,6 +7,7 @@ export interface Question {
   operandB: number
   operator: string
   answer: number
+  options?: number[]
   seed: number
   index: number
 }

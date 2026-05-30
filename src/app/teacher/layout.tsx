@@ -21,6 +21,9 @@ export default function TeacherLayout({ children }: { children: React.ReactNode 
             >
               Settings
             </Link>
+            <Link href="/teacher/competitions" className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+              Competitions
+            </Link>
             <form action="/api/auth/teacher-logout" method="POST">
               <button
                 type="submit"

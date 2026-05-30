@@ -1,4 +1,5 @@
 CREATE TYPE "public"."badge_category" AS ENUM('streak', 'speed', 'mastery', 'persistence', 'milestone');--> statement-breakpoint
+CREATE TYPE "public"."competition_mode" AS ENUM('practice', 'race');--> statement-breakpoint
 CREATE TYPE "public"."difficulty_level" AS ENUM('beginner', 'easy', 'medium', 'hard', 'expert');--> statement-breakpoint
 CREATE TYPE "public"."leaderboard_period" AS ENUM('daily', 'weekly', 'alltime');--> statement-breakpoint
 CREATE TYPE "public"."session_mode" AS ENUM('practice', 'timed', 'race');--> statement-breakpoint
@@ -22,6 +23,26 @@ CREATE TABLE "classes" (
 	"is_active" boolean DEFAULT true,
 	"created_at" timestamp with time zone DEFAULT now(),
 	CONSTRAINT "classes_join_code_unique" UNIQUE("join_code")
+);
+--> statement-breakpoint
+CREATE TABLE "competition_entries" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"competition_id" uuid NOT NULL,
+	"student_id" uuid NOT NULL,
+	"score" integer DEFAULT 0 NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now(),
+	CONSTRAINT "competition_entries_competition_id_student_id_unique" UNIQUE("competition_id","student_id")
+);
+--> statement-breakpoint
+CREATE TABLE "competitions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"teacher_id" uuid NOT NULL,
+	"class_id" uuid NOT NULL,
+	"title" text NOT NULL,
+	"description" text,
+	"mode" "competition_mode" DEFAULT 'practice' NOT NULL,
+	"is_active" boolean DEFAULT true,
+	"created_at" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE "leaderboard_entries" (
@@ -120,6 +141,10 @@ CREATE TABLE "teachers" (
 );
 --> statement-breakpoint
 ALTER TABLE "classes" ADD CONSTRAINT "classes_teacher_id_teachers_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teachers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "competition_entries" ADD CONSTRAINT "competition_entries_competition_id_competitions_id_fk" FOREIGN KEY ("competition_id") REFERENCES "public"."competitions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "competition_entries" ADD CONSTRAINT "competition_entries_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "competitions" ADD CONSTRAINT "competitions_teacher_id_teachers_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teachers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "competitions" ADD CONSTRAINT "competitions_class_id_classes_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."classes"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "leaderboard_entries" ADD CONSTRAINT "leaderboard_entries_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "leaderboard_entries" ADD CONSTRAINT "leaderboard_entries_class_id_classes_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."classes"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "practice_attempts" ADD CONSTRAINT "practice_attempts_session_id_practice_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."practice_sessions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

@@ -47,6 +47,7 @@ export const leaderboardPeriodEnum = pgEnum('leaderboard_period', [
   'weekly',
   'alltime',
 ])
+export const competitionModeEnum = pgEnum('competition_mode', ['practice', 'race'])
 
 export const teachers = pgTable('teachers', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -201,6 +202,29 @@ export const leaderboardEntries = pgTable(
   ]
 )
 
+export const competitions = pgTable('competitions', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  teacherId: uuid('teacher_id').notNull().references(() => teachers.id, { onDelete: 'cascade' }),
+  classId: uuid('class_id').notNull().references(() => classes.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  description: text('description'),
+  mode: competitionModeEnum('mode').notNull().default('practice'),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+})
+
+export const competitionEntries = pgTable(
+  'competition_entries',
+  {
+    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    competitionId: uuid('competition_id').notNull().references(() => competitions.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
+    score: integer('score').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [unique().on(t.competitionId, t.studentId)]
+)
+
 export type Teacher = typeof teachers.$inferSelect
 export type Class = typeof classes.$inferSelect
 export type Student = typeof students.$inferSelect
@@ -211,3 +235,5 @@ export type PracticeAttempt = typeof practiceAttempts.$inferSelect
 export type Badge = typeof badges.$inferSelect
 export type StudentBadge = typeof studentBadges.$inferSelect
 export type LeaderboardEntry = typeof leaderboardEntries.$inferSelect
+export type Competition = typeof competitions.$inferSelect
+export type CompetitionEntry = typeof competitionEntries.$inferSelect

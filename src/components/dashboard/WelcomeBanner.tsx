@@ -4,6 +4,8 @@ interface WelcomeBannerProps {
   displayName: string
   totalStars: number
   todayStars?: number
+  className?: string
+  teacherName?: string
 }
 
 function getGreeting(): string {
@@ -13,7 +15,7 @@ function getGreeting(): string {
   return 'Good evening'
 }
 
-export function WelcomeBanner({ displayName, totalStars, todayStars = 0 }: WelcomeBannerProps) {
+export function WelcomeBanner({ displayName, totalStars, todayStars = 0, className, teacherName }: WelcomeBannerProps) {
   return (
     <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2563eb] rounded-3xl p-6 text-white">
       <p className="text-blue-200 text-sm font-medium">{getGreeting()},</p>
@@ -30,6 +32,11 @@ export function WelcomeBanner({ displayName, totalStars, todayStars = 0 }: Welco
           </div>
         )}
       </div>
+      {(className || teacherName) && (
+        <p className="text-blue-100 text-sm mt-2">
+          {className ? `Class: ${className}` : ''}{className && teacherName ? ' • ' : ''}{teacherName ? `Teacher: ${teacherName}` : ''}
+        </p>
+      )}
     </div>
   )
 }

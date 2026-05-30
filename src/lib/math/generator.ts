@@ -76,3 +76,15 @@ export function generateQuestion(
 export function generateSessionSeed(): number {
   return Math.floor(Math.random() * 0xffffffff)
 }
+
+export function generateOptionsForQuestion(question: Question): number[] {
+  const set = new Set<number>([question.answer])
+  const spread = Math.max(3, Math.floor(Math.abs(question.answer) * 0.2))
+  let i = 1
+  while (set.size < 4) {
+    const delta = spread + i
+    set.add(Math.max(0, question.answer + (i % 2 === 0 ? delta : -delta)))
+    i++
+  }
+  return Array.from(set).sort(() => Math.random() - 0.5)
+}
