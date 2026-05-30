@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  /* Navy blue primary palette */
+  --color-navy-950: #0a1628;
+  --color-navy-900: #1e3a5f;
+  --color-navy-800: #1a4480;
+  --color-navy-700: #1d4ed8;
+  --color-navy-600: #2563eb;
+  --color-navy-500: #3b82f6;
+  --color-navy-400: #60a5fa;
+  --color-navy-100: #dbeafe;
+  --color-navy-50: #eff6ff;
+
+  /* Background */
+  --color-bg-primary: #f0f4ff;
+  --color-bg-card: #ffffff;
+
+  /* Accent colors */
+  --color-gold: #f59e0b;
+  --color-gold-light: #fde68a;
+  --color-correct: #16a34a;
+  --color-correct-light: #dcfce7;
+  --color-incorrect: #dc2626;
+  --color-incorrect-light: #fee2e2;
+}
+
+@theme inline {
+  --color-background: var(--color-bg-primary);
+  --color-foreground: var(--color-navy-900);
+  --font-sans: var(--font-nunito, system-ui, sans-serif);
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-navy-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accessible focus ring — visible, high contrast */
+:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Number pad button sizing for touch accessibility */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
