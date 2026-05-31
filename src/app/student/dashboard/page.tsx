@@ -102,6 +102,7 @@ export default async function StudentDashboard() {
                   key={skillLevel.id}
                   skillLevel={skillLevel}
                   progress={progressMap.get(skillLevel.id)}
+                  totalStars={studentRow?.totalStars ?? 0}
                 />
               ))}
             </div>

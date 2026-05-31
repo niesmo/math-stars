@@ -22,12 +22,13 @@ const DIFFICULTY_LABELS: Record<string, string> = {
 interface SkillCardProps {
   skillLevel: SkillLevel
   progress: StudentProgress | undefined
+  totalStars?: number
 }
 
-export function SkillCard({ skillLevel, progress }: SkillCardProps) {
+export function SkillCard({ skillLevel, progress, totalStars = 0 }: SkillCardProps) {
   const icon = SKILL_ICONS[skillLevel.skill] ?? { emoji: '🔢', color: 'bg-gray-50 border-gray-200' }
   const mastery = progress?.masteryPct ?? 0
-  const isUnlocked = progress?.isUnlocked ?? skillLevel.unlockStars === 0
+  const isUnlocked = (progress?.isUnlocked ?? false) || totalStars >= (skillLevel.unlockStars ?? 0)
 
   return (
     <div

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type Row = { name: string; score: number; trend: number }
 
@@ -39,18 +40,28 @@ export function LiveLeaderboard() {
 
   return (
     <div className="space-y-2">
-      {rendered.map((row, i) => (
-        <div key={row.name} className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3 transition-all duration-500">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-[#1e3a5f] text-white text-xs font-bold flex items-center justify-center">{i + 1}</div>
-            <div className="font-bold text-[#1e3a5f]">{row.name}</div>
-          </div>
-          <div className="text-right">
-            <div className="font-black text-[#1e3a5f]">{row.score}</div>
-            <div className="text-xs text-green-700">+{row.trend}</div>
-          </div>
-        </div>
-      ))}
+      <AnimatePresence mode="popLayout">
+        {rendered.map((row, i) => (
+          <motion.div
+            key={row.name}
+            layout
+            initial={{ opacity: 0, y: 14, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -14, scale: 0.98 }}
+            transition={{ duration: 0.28 }}
+            className="flex items-center justify-between rounded-xl bg-blue-50 px-4 py-3"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-[#1e3a5f] text-white text-xs font-bold flex items-center justify-center">{i + 1}</div>
+              <div className="font-bold text-[#1e3a5f]">{row.name}</div>
+            </div>
+            <div className="text-right">
+              <div className="font-black text-[#1e3a5f]">{row.score}</div>
+              <div className="text-xs text-green-700">+{row.trend}</div>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   )
 }

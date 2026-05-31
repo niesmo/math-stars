@@ -12,6 +12,7 @@ export default function PracticeResultsPage() {
   const audio = useAudio()
   const [displayName, setDisplayName] = useState('')
   const [rankInfo, setRankInfo] = useState<{ rank: number; total: number } | null>(null)
+  const [rankEntries, setRankEntries] = useState<Array<{ rank: number; studentId: string; displayName: string; score: number }>>([])
   const [savedName, setSavedName] = useState(false)
 
   const totalAnswered = attempts.length
@@ -33,7 +34,10 @@ export default function PracticeResultsPage() {
     })
     const rankRes = await fetch(`/api/race/rank?skillLevelId=${encodeURIComponent(skillLevelId)}`)
     const rankJson = await rankRes.json()
-    if (rankJson.success) setRankInfo(rankJson.data)
+    if (rankJson.success) {
+      setRankInfo({ rank: rankJson.data.rank, total: rankJson.data.total })
+      setRankEntries(rankJson.data.entries ?? [])
+    }
     setSavedName(true)
   }
 
@@ -86,9 +90,20 @@ export default function PracticeResultsPage() {
               </button>
             </div>
           ) : (
-            <p className="text-sm text-gray-700 mt-2">
-              Global rank for this level: <span className="font-black text-[#1e3a5f]">#{rankInfo?.rank ?? '-'}</span> / {rankInfo?.total ?? '-'}
-            </p>
+            <div className="mt-3 text-left">
+              <p className="text-sm text-gray-700 mb-2">
+                Global rank for this level: <span className="font-black text-[#1e3a5f]">#{rankInfo?.rank ?? '-'}</span> / {rankInfo?.total ?? '-'}
+              </p>
+              <div className="rounded-xl border border-blue-100 overflow-hidden">
+                {rankEntries.slice(0, 8).map((entry) => (
+                  <div key={`${entry.studentId}-${entry.rank}`} className="grid grid-cols-[48px_1fr_80px] px-3 py-2 text-sm border-b last:border-b-0">
+                    <div className="font-bold text-[#1e3a5f]">#{entry.rank}</div>
+                    <div className="truncate">{entry.displayName}</div>
+                    <div className="text-right font-bold text-[#1e3a5f]">{entry.score}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
