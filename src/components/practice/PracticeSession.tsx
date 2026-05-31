@@ -13,6 +13,7 @@ import type { SkillLevel } from '@/lib/db/schema'
 import type { SessionMode } from '@/types'
 
 const QUESTIONS_PER_SESSION = 10
+const RACE_TIME_LIMIT_SECONDS = 60
 
 interface PracticeSessionProps {
   skillLevel: SkillLevel
@@ -49,6 +50,10 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
   const [submitting, setSubmitting] = useState(false)
   const [initDone, setInitDone] = useState(false)
   const [questionOptions, setQuestionOptions] = useState<number[]>([])
+  const handleTimeUp = useCallback(() => {
+    completeSession()
+    router.push('/student/practice/results')
+  }, [completeSession, router])
 
   useEffect(() => {
     if (initDone) return
@@ -85,7 +90,8 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
       const timeMs = getElapsedMs()
       setSubmitting(true)
 
-      const isLast = questionIndex + 1 >= QUESTIONS_PER_SESSION
+      const questionCap = mode === 'race' ? 9999 : QUESTIONS_PER_SESSION
+      const isLast = questionIndex + 1 >= questionCap
 
       const res = await fetch('/api/practice/submit', {
         method: 'POST',
@@ -135,7 +141,7 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
           setQuestionOptions(generateOptionsForQuestion(nextQuestion))
           startQuestionTimer()
         }
-      }, 800)
+      }, isCorrect ? 250 : 550)
     },
     [
       currentQuestion,
@@ -169,15 +175,12 @@ export function PracticeSession({ skillLevel, mode, studentId }: PracticeSession
     <div className="flex flex-col items-center gap-8 w-full max-w-lg mx-auto px-4 py-6">
       <SessionHeader
         questionIndex={questionIndex}
-        totalQuestions={QUESTIONS_PER_SESSION}
+        totalQuestions={mode === 'race' ? 60 : QUESTIONS_PER_SESSION}
         streak={streak}
         points={points}
         mode={mode}
-        timeLimitSeconds={mode === 'timed' ? 60 : undefined}
-        onTimeUp={() => {
-          completeSession()
-          router.push('/student/practice/results')
-        }}
+        timeLimitSeconds={mode === 'timed' || mode === 'race' ? RACE_TIME_LIMIT_SECONDS : undefined}
+        onTimeUp={handleTimeUp}
       />
 
       <div className="relative w-full bg-white rounded-3xl shadow-lg p-8 min-h-[200px] flex items-center justify-center">

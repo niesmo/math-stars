@@ -74,8 +74,7 @@ export const students = pgTable(
   {
     id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
     classId: uuid('class_id')
-      .notNull()
-      .references(() => classes.id, { onDelete: 'cascade' }),
+      .references(() => classes.id, { onDelete: 'set null' }),
     username: text('username').notNull(),
     displayName: text('display_name').notNull(),
     avatarSeed: text('avatar_seed').notNull(),
@@ -83,7 +82,7 @@ export const students = pgTable(
     totalStars: integer('total_stars').default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [unique().on(t.classId, t.username)]
+  (t) => [index('idx_students_class_username').on(t.classId, t.username)]
 )
 
 export const skillLevels = pgTable(
@@ -188,8 +187,7 @@ export const leaderboardEntries = pgTable(
       .notNull()
       .references(() => students.id, { onDelete: 'cascade' }),
     classId: uuid('class_id')
-      .notNull()
-      .references(() => classes.id, { onDelete: 'cascade' }),
+      .references(() => classes.id, { onDelete: 'set null' }),
     skill: skillEnum('skill'),
     period: leaderboardPeriodEnum('period').notNull(),
     score: integer('score').notNull().default(0),

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { StarIcon } from '@/components/ui/StarIcon'
 
 interface SessionHeaderProps {
@@ -23,22 +23,26 @@ export function SessionHeader({
   onTimeUp,
 }: SessionHeaderProps) {
   const [secondsLeft, setSecondsLeft] = useState(timeLimitSeconds ?? 0)
+  const onTimeUpRef = useRef(onTimeUp)
+  const hasTimedOutRef = useRef(false)
+  onTimeUpRef.current = onTimeUp
 
   useEffect(() => {
-    if (mode !== 'timed' || !timeLimitSeconds) return
+    if ((mode !== 'timed' && mode !== 'race') || !timeLimitSeconds) return
+    hasTimedOutRef.current = false
     setSecondsLeft(timeLimitSeconds)
     const interval = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(interval)
-          onTimeUp?.()
-          return 0
-        }
-        return s - 1
-      })
+      setSecondsLeft((s) => Math.max(0, s - 1))
     }, 1000)
     return () => clearInterval(interval)
-  }, [mode, timeLimitSeconds, onTimeUp])
+  }, [mode, timeLimitSeconds])
+
+  useEffect(() => {
+    if (secondsLeft === 0 && !hasTimedOutRef.current && (mode === 'timed' || mode === 'race')) {
+      hasTimedOutRef.current = true
+      onTimeUpRef.current?.()
+    }
+  }, [secondsLeft, mode])
 
   const progress = totalQuestions > 0 ? (questionIndex / totalQuestions) * 100 : 0
 
@@ -85,8 +89,8 @@ export function SessionHeader({
           <span className="font-bold text-[#1e3a5f]">{points}</span>
         </div>
 
-        {/* Timer (timed mode) */}
-        {mode === 'timed' && timeLimitSeconds && (
+        {/* Timer (timed/race mode) */}
+        {(mode === 'timed' || mode === 'race') && timeLimitSeconds && (
           <div
             className={`font-bold tabular-nums text-lg ${
               secondsLeft <= 10 ? 'text-red-600' : 'text-[#1e3a5f]'

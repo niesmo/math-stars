@@ -1,11 +1,18 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { verifyStudentSession } from '@/lib/auth/student-session'
 
-export default function StudentLayout({ children }: { children: React.ReactNode }) {
+export default async function StudentLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('student_session')?.value
+  const session = token ? await verifyStudentSession(token) : null
+  const homeHref = session?.classId ? '/student/dashboard' : '/'
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-[#1e3a5f] text-white px-4 py-3 shadow-md">
         <nav className="max-w-2xl mx-auto flex items-center justify-between" aria-label="Student navigation">
-          <Link href="/student/dashboard" className="text-xl font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
+          <Link href={homeHref} className="text-xl font-black tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
             ⭐ Math Stars
           </Link>
           <div className="flex items-center gap-1">

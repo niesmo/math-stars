@@ -22,7 +22,7 @@ export interface SessionAttempt {
 export interface StudentSession {
   id: string
   studentId: string
-  classId: string
+  classId: string | null
   displayName: string
   avatarSeed: string
 }

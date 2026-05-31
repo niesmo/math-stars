@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       .set({ totalStars: sql`coalesce(${students.totalStars}, 0) + ${sessionPoints}` })
       .where(eq(students.id, session.studentId))
 
-    if (sessionRow) {
+    if (sessionRow && session.classId) {
       const existingProgress = await db
         .select()
         .from(studentProgress)
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(leaderboardEntries.studentId, session.studentId),
-          eq(leaderboardEntries.classId, session.classId),
+          session.classId ? eq(leaderboardEntries.classId, session.classId) : sql`${leaderboardEntries.classId} is null`,
           eq(leaderboardEntries.period, 'alltime')
         )
       )

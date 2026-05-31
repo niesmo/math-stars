@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { classes, students, teachers } from '@/lib/db/schema'
+import { classes, students } from '@/lib/db/schema'
 import { signStudentSession } from '@/lib/auth/student-session'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, isNull } from 'drizzle-orm'
 import { createHash } from 'crypto'
 
 export async function POST(request: NextRequest) {
@@ -25,53 +25,23 @@ export async function POST(request: NextRequest) {
   const normalizedCode =
     typeof classCode === 'string' && classCode.trim().length > 0
       ? classCode.toUpperCase().trim()
-      : 'OPEN01'
+      : null
   const normalizedUsername = username.toLowerCase().trim()
 
   let classRow: typeof classes.$inferSelect | undefined
   let student: typeof students.$inferSelect | undefined
 
-  try {
-    classRow = await db.select().from(classes).where(eq(classes.joinCode, normalizedCode)).limit(1).then((r) => r[0])
-  } catch {
-    return NextResponse.json(
-      { success: false, error: 'Database connection failed. Check server configuration.' },
-      { status: 500 }
-    )
-  }
-
-  if (!classRow && normalizedCode === 'OPEN01') {
-    let fallbackTeacher = await db.select().from(teachers).limit(1).then((r) => r[0])
-    if (!fallbackTeacher) {
-      fallbackTeacher = await db
-        .insert(teachers)
-        .values({
-          authId: crypto.randomUUID(),
-          email: 'open-practice@local.math-stars',
-          displayName: 'Open Practice',
-        })
-        .returning()
-        .then((r) => r[0])
-    }
-
-    classRow = await db
-      .insert(classes)
-      .values({
-        teacherId: fallbackTeacher.id,
-        name: 'Open Practice',
-        joinCode: 'OPEN01',
-        isActive: true,
-      })
-      .onConflictDoNothing()
-      .returning()
-      .then((r) => r[0])
-
-    if (!classRow) {
-      classRow = await db.select().from(classes).where(eq(classes.joinCode, 'OPEN01')).limit(1).then((r) => r[0])
+  if (normalizedCode) {
+    try {
+      classRow = await db.select().from(classes).where(eq(classes.joinCode, normalizedCode)).limit(1).then((r) => r[0])
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Database connection failed. Check server configuration.' },
+        { status: 500 }
+      )
     }
   }
-
-  if (!classRow || !classRow.isActive) {
+  if (normalizedCode && (!classRow || !classRow.isActive)) {
     return NextResponse.json({ success: false, error: 'Class not found. Check the code and try again.' }, { status: 404 })
   }
 
@@ -79,7 +49,11 @@ export async function POST(request: NextRequest) {
     student = await db
       .select()
       .from(students)
-      .where(and(eq(students.classId, classRow.id), eq(students.username, normalizedUsername)))
+      .where(
+        classRow
+          ? and(eq(students.classId, classRow.id), eq(students.username, normalizedUsername))
+          : and(isNull(students.classId), eq(students.username, normalizedUsername))
+      )
       .limit(1)
       .then((r) => r[0])
   } catch {
@@ -93,7 +67,7 @@ export async function POST(request: NextRequest) {
     student = await db
       .insert(students)
       .values({
-        classId: classRow.id,
+        classId: classRow?.id ?? null,
         username: normalizedUsername,
         displayName: username.trim(),
         avatarSeed: normalizedUsername,
@@ -128,7 +102,7 @@ export async function POST(request: NextRequest) {
   const token = await signStudentSession({
     id: student.id,
     studentId: student.id,
-    classId: student.classId,
+    classId: student.classId ?? null,
     displayName: student.displayName,
     avatarSeed: student.avatarSeed,
   })

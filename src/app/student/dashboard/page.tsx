@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
 import { verifyStudentSession } from '@/lib/auth/student-session'
 import { db } from '@/lib/db'
-import { classes, competitions, leaderboardEntries, skillLevels, studentProgress, teachers } from '@/lib/db/schema'
+import { classes, competitions, leaderboardEntries, skillLevels, studentProgress, teachers, students } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { WelcomeBanner } from '@/components/dashboard/WelcomeBanner'
@@ -22,24 +22,31 @@ export default async function StudentDashboard() {
   ])
 
   const progressMap = new Map(progressRows.map((p) => [p.skillLevelId, p]))
-  const classRow = await db.select().from(classes).where(eq(classes.id, session.classId)).limit(1).then((r) => r[0])
+  const studentRow = await db.select().from(students).where(eq(students.id, session.studentId)).limit(1).then((r) => r[0])
+  const classRow = session.classId
+    ? await db.select().from(classes).where(eq(classes.id, session.classId)).limit(1).then((r) => r[0])
+    : null
   const teacherRow = classRow
     ? await db.select().from(teachers).where(eq(teachers.id, classRow.teacherId)).limit(1).then((r) => r[0])
     : null
-  const classLeaders = await db
-    .select()
-    .from(leaderboardEntries)
-    .where(eq(leaderboardEntries.classId, session.classId))
-    .limit(5)
+  const classLeaders = session.classId
+    ? await db
+        .select()
+        .from(leaderboardEntries)
+        .where(eq(leaderboardEntries.classId, session.classId))
+        .limit(5)
+    : []
   let activeCompetitions: Array<typeof competitions.$inferSelect> = []
-  try {
-    activeCompetitions = await db
-      .select()
-      .from(competitions)
-      .where(eq(competitions.classId, session.classId))
-      .limit(5)
-  } catch {
-    activeCompetitions = []
+  if (session.classId) {
+    try {
+      activeCompetitions = await db
+        .select()
+        .from(competitions)
+        .where(eq(competitions.classId, session.classId))
+        .limit(5)
+    } catch {
+      activeCompetitions = []
+    }
   }
 
   const skills = ['addition', 'subtraction', 'multiplication', 'division'] as const
@@ -48,10 +55,10 @@ export default async function StudentDashboard() {
     <div className="flex flex-col gap-6">
       <WelcomeBanner
         displayName={session.displayName}
-        totalStars={0}
+        totalStars={studentRow?.totalStars ?? 0}
         todayStars={0}
         className={classRow?.name}
-        teacherName={teacherRow?.displayName}
+        teacherName={classRow?.joinCode === 'OPEN01' ? undefined : teacherRow?.displayName}
       />
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl p-4 shadow-sm">

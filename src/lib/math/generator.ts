@@ -54,8 +54,16 @@ export function generateQuestion(
     answer = quotient
   } else if (skill === 'multiplication') {
     const mulMax = Math.min(max, 12)
-    operandA = randInt(rng, min, mulMax)
-    operandB = randInt(rng, min, mulMax)
+    const minMul = Math.max(2, Math.min(min, mulMax))
+    const span = Math.max(1, mulMax - minMul + 1)
+    // Increase challenge as session progresses and avoid repetitive low facts.
+    const floorA = Math.min(mulMax, minMul + Math.floor(index / 2))
+    const floorB = Math.min(mulMax, minMul + Math.floor(index / 3))
+    operandA = randInt(rng, floorA, mulMax)
+    operandB = randInt(rng, floorB, mulMax)
+    if (operandA === operandB) {
+      operandB = ((operandB - minMul + (index % span) + 1) % span) + minMul
+    }
     answer = operandA * operandB
   } else {
     operandA = randInt(rng, min, max)

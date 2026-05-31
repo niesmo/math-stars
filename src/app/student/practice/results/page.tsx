@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePracticeSession } from '@/store/practiceSession'
 import { StarIcon } from '@/components/ui/StarIcon'
@@ -8,8 +8,11 @@ import { StarBurst } from '@/components/gamification/StarBurst'
 import { useAudio } from '@/components/audio/AudioController'
 
 export default function PracticeResultsPage() {
-  const { attempts, points, streakMax, skill, skillLevelId, resetSession } = usePracticeSession()
+  const { attempts, points, streakMax, skill, skillLevelId, mode, resetSession } = usePracticeSession()
   const audio = useAudio()
+  const [displayName, setDisplayName] = useState('')
+  const [rankInfo, setRankInfo] = useState<{ rank: number; total: number } | null>(null)
+  const [savedName, setSavedName] = useState(false)
 
   const totalAnswered = attempts.length
   const correct = attempts.filter((a) => a.isCorrect).length
@@ -20,6 +23,19 @@ export default function PracticeResultsPage() {
     audio.play('complete')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const saveNameAndLoadRank = async () => {
+    if (!displayName.trim() || !skillLevelId) return
+    await fetch('/api/student/profile-name', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayName }),
+    })
+    const rankRes = await fetch(`/api/race/rank?skillLevelId=${encodeURIComponent(skillLevelId)}`)
+    const rankJson = await rankRes.json()
+    if (rankJson.success) setRankInfo(rankJson.data)
+    setSavedName(true)
+  }
 
   return (
     <div className="flex flex-col items-center gap-6 pt-6 text-center">
@@ -54,6 +70,28 @@ export default function PracticeResultsPage() {
           <div className="text-xs text-gray-500 mt-1">Best Streak</div>
         </div>
       </div>
+      {mode === 'race' && (
+        <div className="bg-white rounded-2xl p-4 w-full max-w-sm shadow-sm">
+          <h2 className="font-black text-[#1e3a5f]">Race Leaderboard</h2>
+          {!savedName ? (
+            <div className="mt-3 flex flex-col gap-2">
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Enter your name for ranking"
+                className="px-3 py-2 rounded-xl border border-gray-300"
+              />
+              <button onClick={saveNameAndLoadRank} className="px-4 py-2 bg-[#1e3a5f] text-white rounded-xl font-bold">
+                Submit Score
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-700 mt-2">
+              Global rank for this level: <span className="font-black text-[#1e3a5f]">#{rankInfo?.rank ?? '-'}</span> / {rankInfo?.total ?? '-'}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 w-full max-w-sm">
         <Link
