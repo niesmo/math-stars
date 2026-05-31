@@ -25,6 +25,8 @@ export interface StudentSession {
   classId: string | null
   displayName: string
   avatarSeed: string
+  previewTeacher?: boolean
+  teacherReturnPath?: string
 }
 
 export interface ApiResponse<T> {

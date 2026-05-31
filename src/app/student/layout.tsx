@@ -16,19 +16,20 @@ export default async function StudentLayout({ children }: { children: React.Reac
             ⭐ Math Stars
           </Link>
           <div className="flex items-center gap-1">
+            {session?.previewTeacher && session.teacherReturnPath && (
+              <Link
+                href={session.teacherReturnPath}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-white/20 hover:bg-white/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                Back to Teacher
+              </Link>
+            )}
             <Link
               href="/student/leaderboard"
               className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               aria-label="Leaderboard"
             >
               Leaderboard
-            </Link>
-            <Link
-              href="/student/badges"
-              className="px-3 py-1.5 rounded-lg text-sm font-semibold hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              aria-label="Badges"
-            >
-              Badges
             </Link>
             <Link
               href="/student/profile"

@@ -11,7 +11,7 @@ export default function PracticeResultsPage() {
   const { attempts, points, streakMax, skill, skillLevelId, mode, resetSession } = usePracticeSession()
   const audio = useAudio()
   const [displayName, setDisplayName] = useState('')
-  const [rankInfo, setRankInfo] = useState<{ rank: number; total: number } | null>(null)
+  const [rankInfo, setRankInfo] = useState<{ rank: number; total: number; lastRunScore: number; bestRunScore: number; isNewBest: boolean } | null>(null)
   const [rankEntries, setRankEntries] = useState<Array<{ rank: number; studentId: string; displayName: string; score: number }>>([])
   const [savedName, setSavedName] = useState(false)
 
@@ -25,6 +25,23 @@ export default function PracticeResultsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    if (mode !== 'race' || !skillLevelId) return
+    fetch(`/api/race/rank?skillLevelId=${encodeURIComponent(skillLevelId)}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.success) return
+        setRankInfo({
+          rank: json.data.rank,
+          total: json.data.total,
+          lastRunScore: json.data.lastRunScore,
+          bestRunScore: json.data.bestRunScore,
+          isNewBest: json.data.isNewBest,
+        })
+        if (json.data.isNewBest) setRankEntries(json.data.entries ?? [])
+      })
+  }, [mode, skillLevelId])
+
   const saveNameAndLoadRank = async () => {
     if (!displayName.trim() || !skillLevelId) return
     await fetch('/api/student/profile-name', {
@@ -35,7 +52,13 @@ export default function PracticeResultsPage() {
     const rankRes = await fetch(`/api/race/rank?skillLevelId=${encodeURIComponent(skillLevelId)}`)
     const rankJson = await rankRes.json()
     if (rankJson.success) {
-      setRankInfo({ rank: rankJson.data.rank, total: rankJson.data.total })
+      setRankInfo({
+        rank: rankJson.data.rank,
+        total: rankJson.data.total,
+        lastRunScore: rankJson.data.lastRunScore,
+        bestRunScore: rankJson.data.bestRunScore,
+        isNewBest: rankJson.data.isNewBest,
+      })
       setRankEntries(rankJson.data.entries ?? [])
     }
     setSavedName(true)
@@ -77,6 +100,11 @@ export default function PracticeResultsPage() {
       {mode === 'race' && (
         <div className="bg-white rounded-2xl p-4 w-full max-w-sm shadow-sm">
           <h2 className="font-black text-[#1e3a5f]">Race Leaderboard</h2>
+          {rankInfo && (
+            <p className="text-sm text-gray-700 mt-2">
+              Last run: <span className="font-bold">{rankInfo.lastRunScore}</span> • Best run: <span className="font-bold">{rankInfo.bestRunScore}</span>
+            </p>
+          )}
           {!savedName ? (
             <div className="mt-3 flex flex-col gap-2">
               <input
@@ -94,6 +122,20 @@ export default function PracticeResultsPage() {
               <p className="text-sm text-gray-700 mb-2">
                 Global rank for this level: <span className="font-black text-[#1e3a5f]">#{rankInfo?.rank ?? '-'}</span> / {rankInfo?.total ?? '-'}
               </p>
+              <div className="rounded-xl border border-blue-100 overflow-hidden">
+                {rankEntries.slice(0, 8).map((entry) => (
+                  <div key={`${entry.studentId}-${entry.rank}`} className="grid grid-cols-[48px_1fr_80px] px-3 py-2 text-sm border-b last:border-b-0">
+                    <div className="font-bold text-[#1e3a5f]">#{entry.rank}</div>
+                    <div className="truncate">{entry.displayName}</div>
+                    <div className="text-right font-bold text-[#1e3a5f]">{entry.score}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {!savedName && rankEntries.length > 0 && (
+            <div className="mt-3 text-left">
+              <p className="text-sm text-gray-700 mb-2">You set a new best. Current standings:</p>
               <div className="rounded-xl border border-blue-100 overflow-hidden">
                 {rankEntries.slice(0, 8).map((entry) => (
                   <div key={`${entry.studentId}-${entry.rank}`} className="grid grid-cols-[48px_1fr_80px] px-3 py-2 text-sm border-b last:border-b-0">

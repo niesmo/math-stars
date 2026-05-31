@@ -207,6 +207,7 @@ export const competitions = pgTable('competitions', {
   title: text('title').notNull(),
   description: text('description'),
   mode: competitionModeEnum('mode').notNull().default('practice'),
+  skillLevelId: uuid('skill_level_id').references(() => skillLevels.id, { onDelete: 'set null' }),
   isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 })
